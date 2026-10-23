@@ -1139,7 +1139,7 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
       const costDeprec = deprecPerHourVal * totalPrintHours;
       deprecRatePerHour.textContent = `${formatBRL(deprecPerHourVal)}/h`;
 
-      // 5. Fixed & Extras
+      // 5. Fixed & Extras 
       const packCost = Math.max(0, parseFloat(elPackagingCost.value) || 0);
       const extraOther = Math.max(0, parseFloat(elOtherCosts.value) || 0);
       const failRatePct = Math.max(0, parseFloat(elFailureRate.value) || 0);
