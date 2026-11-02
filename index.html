@@ -1060,6 +1060,13 @@ padding: 1.25rem; box-shadow: 0 12px 30px rgba(0,0,0,.18);
 }
 .hero-value { font-size: 2.4rem; font-weight: 700; color: var(--accent-text); line-height: 1.1; }
 .card-soft { border-radius: 14px; box-shadow: 0 6px 18px rgba(0,0,0,.12); }
+.card.panel, .panel.card { padding: 1.5rem; }
+.card.panel > header, .panel.card > header { padding: 0 0 0.75rem; }
+.card.panel > section, .panel.card > section { padding: 0; }
+.card.panel > footer, .panel.card > footer { padding: 0.75rem 0 0; }
+@media (max-width: 640px) {
+.card.panel, .panel.card { padding: 1.25rem; }
+}
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; }
 .form-grid .span-2 { grid-column: span 2; }
 .field-label { display: block; font-size: 0.82rem; font-weight: 600; margin-bottom: 6px; color: var(--text); }
@@ -1274,12 +1281,12 @@ body * { visibility: hidden !important; }
 <div class="form-grid">
 <div>
 <label class="field-label" for="valorImp">Valor de compra da impressora (R$)</label>
-<input class="ctl" id="valorImp" type="number" step="10" min="0" value="5000">
+<input class="ctl" id="valorImp" type="number" step="10" min="0" value="2400">
 <div class="field-helper">Preço pago na aquisição.</div>
 </div>
 <div>
 <label class="field-label" for="vidaUtil">Vida útil estimada (horas)</label>
-<input class="ctl" id="vidaUtil" type="number" step="10" min="1" value="5000">
+<input class="ctl" id="vidaUtil" type="number" step="10" min="1" value="3000">
 <div class="field-helper">Horas esperadas até o fim da máquina.</div>
 </div>
 </div>
@@ -1782,7 +1789,7 @@ window.skipUI.toast(`Perfil de margem aplicado: ${b.dataset.margin}%`);
 $('btnResetCalc').addEventListener('click', () => {
 $('matTipo').value = 'PLA'; $('matPreco').value = 89; $('matPeso').value = 48;
 $('maqPot').value = 200; $('tarifa').value = 0.95; $('horas').value = 6; $('minutos').value = 30;
-$('prepMin').value = 15; $('valorHora').value = 25; $('valorImp').value = 5000; $('vidaUtil').value = 5000;
+$('prepMin').value = 15; $('valorHora').value = 25; $('valorImp').value = 2400; $('vidaUtil').value = 3000;
 $('embalagem').value = 3.5; $('outros').value = 1.2; $('falha').value = 8; $('qtd').value = 10;
 setMargin(50); compute(); saveAll();
 window.skipUI.toast('Valores padrão restaurados', { type: 'success' });
