@@ -1,0 +1,1815 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Casa116-3D — Calculadora + Gerador de Orçamentos</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+/* Skip artifact shell — fixed styles served beside every artifact.
+   Tokens, utilities and components (basecoat 1.0 markup, no CDN); artifacts
+   override --accent for their own identity. */
+:root {
+  color-scheme: light dark;
+  --accent: #2563eb;
+  --accent-contrast: #ffffff;
+  --accent-text: color-mix(in srgb, var(--accent) 72%, #000);
+  --bg: #f8f9fb;
+  --surface: #ffffff;
+  --text: #14171f;
+  --text-muted: #5b6472;
+  --border: rgba(20, 23, 31, 0.10);
+  --radius: 10px;
+  --shadow: 0 1px 3px rgba(20, 23, 31, 0.08);
+  --space: 16px;
+  --success: #0a7a35;
+  --danger: #c0262d;
+  --warning: #8a5300;
+}
+/* Theme resolution. Without data-theme the viewer's system preference decides,
+   as it always did. With it, the artifact's own choice wins in BOTH directions:
+   a page that hardcodes one palette must not be handed the opposite set of
+   tokens by the machine it happens to be opened on. The dark values appear
+   twice because a media query cannot be folded into a selector list.
+   The attribute sits inside :where() so these blocks keep the specificity of a
+   bare :root — the page's own <style> is linked after this file and must go on
+   overriding any token it wants, exactly as it could before. */
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    --accent-text: color-mix(in srgb, var(--accent) 78%, #fff);
+    --bg: #101318;
+    --surface: #181c23;
+    --text: #eef1f6;
+    --text-muted: #9aa4b2;
+    --border: rgba(238, 241, 246, 0.12);
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    --success: #4ade80;
+    --danger: #f87171;
+    --warning: #fbbf24;
+  }
+}
+:root:where([data-theme="dark"]) {
+  color-scheme: dark;
+  --accent-text: color-mix(in srgb, var(--accent) 78%, #fff);
+  --bg: #101318;
+  --surface: #181c23;
+  --text: #eef1f6;
+  --text-muted: #9aa4b2;
+  --border: rgba(238, 241, 246, 0.12);
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --success: #4ade80;
+  --danger: #f87171;
+  --warning: #fbbf24;
+}
+:root:where([data-theme="light"]) { color-scheme: light; }
+/* Pages generated before the shell had its own components still link the
+   basecoat CDN, which reads its own tokens and switches theme only on a
+   .dark class. Bridged to the shell's, whatever of it those pages use takes
+   the page's accent and follows the declared theme. Its --accent token is a
+   hover tint, renamed in its theme as --color-accent; the shell's --accent is
+   the brand colour, so the tint is derived from it here. */
+:root {
+  --background: var(--bg);
+  --foreground: var(--text);
+  --card: var(--surface);
+  --card-foreground: var(--text);
+  --popover: var(--surface);
+  --popover-foreground: var(--text);
+  --primary: var(--accent);
+  --primary-foreground: var(--accent-contrast);
+  --secondary: color-mix(in srgb, var(--text) 7%, var(--surface));
+  --secondary-foreground: var(--text);
+  --muted: color-mix(in srgb, var(--text) 5%, var(--surface));
+  --muted-foreground: var(--text-muted);
+  --color-accent: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  --color-accent-foreground: var(--text);
+  --destructive: var(--danger);
+  --input: var(--border);
+  --ring: var(--accent);
+}
+* { box-sizing: border-box; }
+/* The reset the pages were written against: they all linked basecoat, which
+   ships Tailwind's. Its components now live here, so the reset does too. */
+*, ::before, ::after, ::backdrop { margin: 0; padding: 0; border: 0 solid; }
+/* Preflight's rule too: without it a component class that sets display
+   (.alert, .card, .btn…) beats the hidden attribute and shows the element. */
+[hidden]:where(:not([hidden="until-found"])) { display: none !important; }
+.hidden { display: none !important; }
+h1, h2, h3, h4, h5, h6 { font-size: inherit; font-weight: inherit; }
+a { color: inherit; text-decoration: inherit; }
+b, strong { font-weight: bolder; }
+ol, ul, menu { list-style: none; }
+svg, video, canvas, iframe { display: block; vertical-align: middle; }
+button, input, select, textarea { color: inherit; background-color: transparent; border-radius: 0; }
+table { border-collapse: collapse; }
+hr { height: 0; color: inherit; border-top-width: 1px; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+img { max-width: 100%; display: block; }
+
+.shell-container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+.shell-section { padding: calc(var(--space) * 2) 0; }
+.shell-grid { display: grid; gap: var(--space); grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.shell-toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: var(--space); }
+.shell-footer { padding: 24px 0 40px; color: var(--text-muted); font-size: 13px; }
+
+.shell-hero { padding: calc(var(--space) * 3) 0 calc(var(--space) * 2); }
+.shell-hero h1 { font-size: clamp(26px, 4vw, 40px); line-height: 1.15; margin: 0 0 10px; text-wrap: balance; }
+.shell-hero p { color: var(--text-muted); max-width: 60ch; margin: 0; }
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: var(--space);
+}
+
+.kpi { display: flex; flex-direction: column; gap: 4px; }
+.kpi .kpi-value { font-size: clamp(22px, 2.3vw, 28px); font-weight: 650; line-height: 1.1; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.kpi .kpi-label { font-size: 13px; color: var(--text-muted); }
+.kpi .kpi-delta { font-size: 12.5px; font-weight: 600; }
+.kpi .kpi-delta.up { color: var(--success); }
+.kpi .kpi-delta.down { color: var(--danger); }
+
+table.shell-table { border-collapse: collapse; width: 100%; font-size: 14px; }
+table.shell-table th {
+  text-align: left; font-size: 11.5px; letter-spacing: 0.05em; text-transform: uppercase;
+  color: var(--text-muted); font-weight: 600;
+}
+table.shell-table th, table.shell-table td { padding: 9px 12px 9px 0; border-bottom: 1px solid var(--border); }
+table.shell-table td.num, table.shell-table th.num { text-align: right; font-variant-numeric: tabular-nums; }
+table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 6%, transparent); }
+
+.chart-box { width: 100%; min-height: 220px; }
+.chart-box svg { width: 100%; height: auto; display: block; }
+.chart-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 16px; margin-top: 12px; font-size: 12.5px; color: var(--text-muted); }
+.chart-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.chart-legend i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.chart-legend b { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+.muted { color: var(--text-muted); }
+.accent { color: var(--accent-text); }
+.shell-badge, .eyebrow {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent-text);
+}
+/* A pill keeps its content width inside flex and grid columns, which would
+   otherwise stretch it across the card; a centred parent still centres it. */
+.shell-badge, .eyebrow, .badge { width: fit-content; max-width: 100%; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .shell-fade { animation: shell-fade 400ms ease both; }
+  @keyframes shell-fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+}
+
+/* Layout and type utilities: what the pages kept spelling in style="".
+   Spacing and type sizes follow Tailwind's scale; there is no Tailwind. */
+.row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.stack { display: flex; flex-direction: column; gap: var(--space); }
+.between { justify-content: space-between; }
+.grow { flex: 1 1 0; min-width: 0; }
+.cols-2, .cols-3, .cols-4, .cols-5 { display: grid; gap: var(--space); grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 720px) {
+  .cols-2, .cols-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .cols-5 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (min-width: 1000px) { .cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (min-width: 1100px) { .cols-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+.gap-1 { gap: 4px; } .gap-2 { gap: 8px; } .gap-3 { gap: 12px; } .gap-4 { gap: 16px; } .gap-6 { gap: 24px; }
+.m-0 { margin: 0; }
+.mt-1 { margin-top: 4px; } .mt-2 { margin-top: 8px; } .mt-3 { margin-top: 12px; } .mt-4 { margin-top: 16px; } .mt-6 { margin-top: 24px; }
+.mb-1 { margin-bottom: 4px; } .mb-2 { margin-bottom: 8px; } .mb-3 { margin-bottom: 12px; } .mb-4 { margin-bottom: 16px; } .mb-6 { margin-bottom: 24px; }
+.p-2 { padding: 8px; } .p-3 { padding: 12px; } .p-4 { padding: 16px; } .p-6 { padding: 24px; }
+.text-xs { font-size: 12px; } .text-sm { font-size: 14px; } .text-base { font-size: 16px; }
+.text-lg { font-size: 18px; } .text-xl { font-size: 20px; line-height: 1.35; }
+.text-2xl { font-size: 24px; line-height: 1.25; } .text-3xl { font-size: 30px; line-height: 1.2; }
+.font-medium { font-weight: 500; } .font-semibold { font-weight: 600; } .font-bold { font-weight: 700; }
+.text-right { text-align: right; } .text-center { text-align: center; }
+.nowrap { white-space: nowrap; }
+.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-variant-numeric: tabular-nums; }
+.w-full { width: 100%; }
+.text-success { color: var(--success); } .text-danger { color: var(--danger); } .text-warning { color: var(--warning); }
+
+/* Components, with basecoat 1.0 markup (variants and sizes are data
+   attributes) and the shell tokens, so a page needs neither component CSS
+   nor a CSS framework. An older page that also links basecoat gets these
+   rules after it, over the same properties. */
+button, input, select, textarea { font: inherit; }
+input[type="checkbox"], input[type="radio"] { accent-color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  height: 36px; padding: 0 14px; border: 1px solid transparent; border-radius: calc(var(--radius) - 2px);
+  background: var(--accent); color: var(--accent-contrast);
+  font-size: 14px; font-weight: 500; line-height: 1; white-space: nowrap; text-decoration: none; cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+.btn:hover { background: color-mix(in srgb, var(--accent) 86%, #000); }
+.btn:disabled, .btn[aria-disabled="true"] { opacity: 0.5; pointer-events: none; }
+.btn[data-variant="secondary"] { background: color-mix(in srgb, var(--text) 8%, var(--surface)); color: var(--text); }
+.btn[data-variant="secondary"]:hover { background: color-mix(in srgb, var(--text) 14%, var(--surface)); }
+.btn[data-variant="outline"] { background: var(--surface); color: var(--text); border-color: var(--border); }
+.btn[data-variant="ghost"] { background: transparent; color: var(--text); }
+.btn[data-variant="outline"]:hover, .btn[data-variant="ghost"]:hover { background: color-mix(in srgb, var(--accent) 10%, var(--surface)); }
+.btn[data-variant="destructive"] { background: var(--danger); color: var(--bg); }
+.btn[data-variant="destructive"]:hover { background: color-mix(in srgb, var(--danger) 86%, var(--text)); }
+.btn[data-variant="link"] { height: auto; padding: 0; background: none; color: var(--accent-text); text-decoration: underline; text-underline-offset: 3px; }
+.btn[data-size="sm"] { height: 30px; padding: 0 10px; font-size: 13px; }
+.btn[data-size="lg"] { height: 42px; padding: 0 20px; font-size: 15px; }
+.btn[data-size="icon"] { width: 36px; padding: 0; }
+
+.badge {
+  display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px;
+  border: 1px solid transparent; border-radius: 999px; background: var(--accent); color: var(--accent-contrast);
+  font-size: 12px; font-weight: 600; line-height: 1.5; white-space: nowrap;
+}
+.badge[data-variant="secondary"] { background: color-mix(in srgb, var(--text) 8%, var(--surface)); color: var(--text); }
+.badge[data-variant="outline"] { background: transparent; color: var(--text); border-color: var(--border); }
+.badge[data-variant="destructive"] { background: color-mix(in srgb, var(--danger) 14%, var(--surface)); color: var(--danger); }
+
+.alert {
+  display: grid; gap: 4px; padding: 12px 16px; border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--surface); color: var(--text); font-size: 14px;
+}
+.alert h2, .alert h3 { margin: 0; font-size: 14px; font-weight: 600; }
+.alert p, .alert section { margin: 0; color: var(--text-muted); }
+.alert[data-variant="destructive"] { border-color: color-mix(in srgb, var(--danger) 45%, var(--border)); background: color-mix(in srgb, var(--danger) 7%, var(--surface)); color: var(--danger); }
+
+.card {
+  display: flex; flex-direction: column; gap: 16px; padding: 20px 0;
+  border: 1px solid var(--border); border-radius: calc(var(--radius) + 2px);
+  background: var(--surface); color: var(--text); box-shadow: var(--shadow);
+}
+.card > header, .card > section, .card > footer { padding: 0 20px; }
+.card > header { display: grid; gap: 4px; }
+.card > header h2, .card > header h3 { margin: 0; font-size: 16px; font-weight: 600; line-height: 1.3; }
+.card > header p { margin: 0; color: var(--text-muted); font-size: 14px; }
+.card > footer { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+
+.input {
+  width: 100%; min-height: 36px; padding: 6px 12px; border: 1px solid var(--border); border-radius: calc(var(--radius) - 2px);
+  background: var(--surface); color: var(--text); font-size: 14px;
+}
+textarea.input { min-height: 84px; resize: vertical; }
+.input::placeholder { color: var(--text-muted); }
+.input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
+.field { display: grid; gap: 6px; }
+.field label { font-size: 14px; font-weight: 500; }
+.field [role="alert"] { color: var(--danger); font-size: 13px; }
+
+dialog.dialog {
+  width: min(520px, calc(100vw - 32px)); max-height: calc(100vh - 32px); margin: auto; padding: 0;
+  border: 1px solid var(--border); border-radius: calc(var(--radius) + 4px);
+  background: var(--surface); color: var(--text); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+}
+dialog.dialog::backdrop { background: rgba(0, 0, 0, 0.5); }
+dialog.dialog > div { display: grid; gap: 16px; padding: 24px; }
+dialog.dialog header { display: grid; gap: 4px; }
+dialog.dialog header h2 { margin: 0; font-size: 18px; font-weight: 600; }
+dialog.dialog header p { margin: 0; color: var(--text-muted); font-size: 14px; }
+dialog.dialog footer { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+
+.tabs { display: grid; gap: 12px; }
+.tabs > [role="tablist"] {
+  display: inline-flex; gap: 4px; width: fit-content; max-width: 100%; padding: 4px; overflow-x: auto;
+  border-radius: var(--radius); background: color-mix(in srgb, var(--text) 6%, var(--surface));
+}
+.tabs [role="tab"] {
+  padding: 6px 12px; border: 0; border-radius: calc(var(--radius) - 4px); background: transparent;
+  color: var(--text-muted); font-size: 14px; font-weight: 500; white-space: nowrap; cursor: pointer;
+}
+.tabs [role="tab"][aria-selected="true"] { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
+.tabs [role="tabpanel"][hidden] { display: none; }
+
+.accordion > details { border-bottom: 1px solid var(--border); }
+.accordion > details > summary {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 14px 0; font-weight: 500; list-style: none; cursor: pointer;
+}
+.accordion > details > summary::-webkit-details-marker { display: none; }
+.accordion > details > summary::after { content: "+"; color: var(--text-muted); font-size: 18px; line-height: 1; }
+.accordion > details[open] > summary::after { content: "\2212"; }
+.accordion > details > :not(summary) { margin: 0 0 14px; color: var(--text-muted); }
+
+.toaster {
+  position: fixed; right: 16px; bottom: 16px; z-index: 50; display: flex; flex-direction: column-reverse; gap: 8px;
+  width: min(360px, calc(100vw - 32px)); pointer-events: none;
+}
+.toaster .toast { pointer-events: auto; transition: opacity 200ms ease, transform 200ms ease; }
+.toaster .toast[aria-hidden="true"] { opacity: 0; transform: translateY(8px); }
+.toaster .toast-content {
+  padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--surface); color: var(--text); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12); font-size: 13px;
+}
+.toaster .toast-content h2 { margin: 0 0 2px; font-size: 14px; font-weight: 600; }
+.toaster .toast-content p { margin: 0; color: var(--text-muted); }
+
+/* skipUI building blocks. */
+.skip-table-search { max-width: 320px; margin-bottom: 12px; }
+.skip-table-wrap { overflow-x: auto; }
+table.shell-table th[data-sort] { cursor: pointer; user-select: none; }
+table.shell-table th[aria-sort="ascending"]::after { content: " \25B2"; font-size: 9px; }
+table.shell-table th[aria-sort="descending"]::after { content: " \25BC"; font-size: 9px; }
+table.shell-table td.skip-table-empty { color: var(--text-muted); text-align: center; padding: 24px 0; }
+.skip-pager { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; font-size: 13px; color: var(--text-muted); }
+.toaster .toast[data-type="success"] .toast-content { border-left: 3px solid var(--success); }
+.toaster .toast[data-type="error"] .toast-content { border-left: 3px solid var(--danger); }
+
+</style>
+<script>
+/* Skip artifact shell — fixed helpers served beside every artifact. */
+(function () {
+  "use strict";
+
+  var fmt = {
+    num: function (v, opts) { return new Intl.NumberFormat("pt-BR", opts || {}).format(v); },
+    brl: function (v) { return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v); },
+    pct: function (v) { return new Intl.NumberFormat("pt-BR", { style: "percent", maximumFractionDigits: 1 }).format(v); },
+    compact: function (v) { return new Intl.NumberFormat("pt-BR", { notation: "compact", maximumFractionDigits: 1 }).format(v); },
+    brlCompact: function (v) { return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", notation: "compact", maximumFractionDigits: 1 }).format(v); }
+  };
+
+  // axisLabels formats the five y-axis ticks in the unit the chart declared
+  // (percent, BRL or plain numbers), compact so long values never clip, with
+  // the fewest decimals that still print every tick exactly (1,5 mi, not 2 mi).
+  function axisLabels(format, ticks) {
+    function at(digits) {
+      var opts = { notation: "compact", maximumFractionDigits: digits };
+      if (format === "pct") opts = { style: "percent", maximumFractionDigits: digits };
+      else if (format === "brl") opts = { style: "currency", currency: "BRL", notation: "compact", maximumFractionDigits: digits };
+      var nf = new Intl.NumberFormat("pt-BR", opts);
+      return ticks.map(function (t) { return nf.format(t); });
+    }
+    for (var digits = 0; digits < 2; digits++) {
+      if (at(digits).join("|") === at(digits + 1).join("|")) return at(digits);
+    }
+    return at(2);
+  }
+
+  // yAxisPad formats the ticks and measures the left padding they need from
+  // the longest one; drawYAxis then draws the grid and the labels.
+  function yAxisPad(format, max) {
+    var labels = axisLabels(format, [0, max / 4, max / 2, (max * 3) / 4, max]);
+    var longest = labels.reduce(function (m, l) { return Math.max(m, l.length); }, 0);
+    return { labels: labels, padL: Math.max(40, Math.round(longest * 6.2) + 14) };
+  }
+  function drawYAxis(svg, axis, W, padR, padT, plotH) {
+    for (var g = 0; g <= 4; g++) {
+      var gy = padT + plotH - (plotH * g) / 4;
+      svg.appendChild(svgEl("line", { x1: axis.padL, y1: gy, x2: W - padR, y2: gy, stroke: "currentColor", "stroke-opacity": 0.08 }));
+      var lbl = svgEl("text", { x: axis.padL - 8, y: gy + 4, "text-anchor": "end", "font-size": 10, fill: mutedColor() });
+      lbl.textContent = axis.labels[g];
+      svg.appendChild(lbl);
+    }
+  }
+
+  // xLabelStep: show every k-th category label so labels never overlap, and
+  // always the last one (counted back from the end).
+  function xLabelStep(labels, step) {
+    var longest = labels.reduce(function (m, l) { return Math.max(m, String(l).length); }, 0);
+    return Math.max(1, Math.ceil((longest * 6.4 + 8) / Math.max(step, 1)));
+  }
+  function drawXLabel(svg, text, x, y, W, edgeGuard) {
+    var anchor = "middle";
+    var half = String(text).length * 3.2;
+    if (edgeGuard && x - half < 4) anchor = "start";
+    if (edgeGuard && x + half > W - 4) anchor = "end";
+    var tx = svgEl("text", { x: x, y: y, "text-anchor": anchor, "font-size": 11, fill: mutedColor() });
+    tx.textContent = text;
+    svg.appendChild(tx);
+  }
+  // categoryLines fits a bar's category name in its slot: one line, two lines
+  // split at a space, or cut with "…". A bar without its name can't be read, so
+  // categories are never skipped; null when the slot is too narrow for that.
+  function categoryLines(text, slot) {
+    var fit = Math.floor((slot - 6) / 6.4);
+    var s = String(text);
+    if (fit < 4) return null;
+    if (s.length <= fit) return [s];
+    var cut = function (t) { return t.length <= fit ? t : t.slice(0, fit - 1).trimEnd() + "…"; };
+    var best = -1;
+    for (var i = 0; i < s.length; i++) {
+      if (s[i] === " " && (best < 0 || Math.abs(s.length / 2 - i) < Math.abs(s.length / 2 - best))) best = i;
+    }
+    if (best < 0) return [cut(s)];
+    return [cut(s.slice(0, best)), cut(s.slice(best + 1))];
+  }
+  function legend(el, items) {
+    var box = document.createElement("div");
+    box.className = "chart-legend";
+    items.forEach(function (it) {
+      var row = document.createElement("span");
+      var dot = document.createElement("i");
+      dot.style.background = it.color;
+      row.appendChild(dot);
+      row.appendChild(document.createTextNode((it.label || "") + (it.value ? " " : "")));
+      if (it.value) {
+        var v = document.createElement("b");
+        v.textContent = it.value;
+        row.appendChild(v);
+      }
+      box.appendChild(row);
+    });
+    resolve(el).appendChild(box);
+  }
+  var seriesPalette = ["#1baf7a", "#eda100", "#e34948", "#4a3aa7", "#e87ba4", "#0ea5b7"];
+
+  // format accepts a function OR one of the fmt names ("num" | "brl" | "pct").
+  // A page's function may return nothing or throw: the chart prints its
+  // number instead of taking the rest of the page script down with it.
+  function coerceFormat(spec) {
+    if (typeof spec === "function") {
+      return function (v) {
+        try {
+          var out = spec(v);
+          return out == null ? "" : String(out);
+        } catch (e) {
+          return fmt.num(v);
+        }
+      };
+    }
+    if (typeof spec === "string" && fmt[spec]) return fmt[spec];
+    return function (v) { return fmt.num(v); };
+  }
+
+  function accent() {
+    return getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#2563eb";
+  }
+  function mutedColor() {
+    return getComputedStyle(document.documentElement).getPropertyValue("--text-muted").trim() || "#5b6472";
+  }
+  function svgEl(tag, attrs) {
+    var el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    for (var k in attrs) el.setAttribute(k, attrs[k]);
+    return el;
+  }
+  function frame(el, w, h) {
+    var svg = svgEl("svg", { viewBox: "0 0 " + w + " " + h, role: "img" });
+    el = resolve(el);
+    el.innerHTML = "";
+    el.appendChild(svg);
+    return svg;
+  }
+
+  // maxOf guards the axis scale: empty values would give -Infinity (truthy,
+  // so "|| 1" can't catch it) and a non-positive max would flip the chart.
+  // finite reads a chart value as a number, 0 when it is not one (NaN,
+  // Infinity, a stray string), so one bad value cannot blank the axis.
+  function finite(v) {
+    var n = +v;
+    return isFinite(n) ? n : 0;
+  }
+
+  function maxOf(values) {
+    var m = values.length ? Math.max.apply(null, values.map(finite)) : 0;
+    return m > 0 ? m : 1;
+  }
+
+  // labelsFor pads or trims the category names to the n points drawn: pages
+  // pass labels and values of different lengths, and one throw here loses
+  // every section the page renders after the chart.
+  function labelsFor(cfg, n) {
+    var out = [];
+    for (var i = 0; i < n; i++) out.push(cfg.labels && cfg.labels[i] != null ? String(cfg.labels[i]) : "");
+    return out;
+  }
+
+  // niceMax rounds the scale up so the four grid steps land on round values
+  // (1, 1.5, 2, 2.5, 3, 4, 5, 6 or 8 × 10^k) and the tick labels read exactly.
+  function niceMax(max) {
+    var raw = max / 4;
+    var mag = Math.pow(10, Math.floor(Math.log10(raw)));
+    var res = raw / mag;
+    var steps = [1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10];
+    var nice = steps.filter(function (s) { return s >= res - 1e-9; })[0];
+    return nice * mag * 4;
+  }
+
+  // bar(el, {labels:[], values:[], color?, format?}) — vertical bar chart.
+  function bar(el, cfg) {
+    var W = 640, H = 280, padB = 30, padT = 12, padR = 12;
+    var max = niceMax(maxOf(cfg.values));
+    var axis = yAxisPad(cfg.format, max);
+    var svg = frame(el, W, H);
+    var n = cfg.values.length;
+    var labels = labelsFor(cfg, n);
+    var plotW = W - axis.padL - padR;
+    var step = plotW / n, bw = Math.min(step * 0.62, 64);
+    var names = labels.map(function (l) { return categoryLines(l, step); });
+    var named = names.every(Boolean);
+    if (named && names.some(function (l) { return l.length > 1; })) padB = 42;
+    var plotH = H - padT - padB;
+    var color = cfg.color || accent();
+    var f = coerceFormat(cfg.format);
+    var every = xLabelStep(labels, step);
+    drawYAxis(svg, axis, W, padR, padT, plotH);
+    cfg.values.forEach(function (v, i) {
+      var bh = Math.max(0, (finite(v) / max) * plotH);
+      var x = axis.padL + i * step + (step - bw) / 2;
+      var y = padT + plotH - bh;
+      var r = svgEl("rect", { x: x, y: y, width: bw, height: bh, rx: 4, fill: (cfg.colors && cfg.colors[i]) || color });
+      var t = svgEl("title", {});
+      t.textContent = labels[i] + ": " + f(v);
+      r.appendChild(t);
+      svg.appendChild(r);
+      if (named) {
+        names[i].forEach(function (text, li) {
+          drawXLabel(svg, text, x + bw / 2, padT + plotH + 18 + li * 13, W, false);
+        });
+      } else if ((n - 1 - i) % every === 0) {
+        drawXLabel(svg, labels[i], x + bw / 2, H - 10, W, false);
+      }
+    });
+  }
+
+  // line(el, {labels:[], values:[] | series:[{label, values, color?}], color?, format?})
+  // — one line, or several series on one scale with a legend under the chart.
+  function line(el, cfg) {
+    var W = 640, H = 280, padB = 30, padT = 12, padR = 16;
+    var series = cfg.series && cfg.series.length
+      ? cfg.series
+      : [{ label: "", values: cfg.values || [], color: cfg.color }];
+    var all = [];
+    series.forEach(function (s) { all = all.concat(s.values || []); });
+    var max = niceMax(maxOf(all));
+    var axis = yAxisPad(cfg.format, max);
+    var svg = frame(el, W, H);
+    var n = series.reduce(function (m, s) { return Math.max(m, (s.values || []).length); }, 0);
+    var labels = labelsFor(cfg, n);
+    var plotW = W - axis.padL - padR, plotH = H - padT - padB;
+    var f = coerceFormat(cfg.format);
+    drawYAxis(svg, axis, W, padR, padT, plotH);
+    var xs = labels.map(function (_, i) { return axis.padL + (n === 1 ? plotW / 2 : (plotW * i) / (n - 1)); });
+    var every = xLabelStep(labels, n > 1 ? plotW / (n - 1) : plotW);
+    labels.forEach(function (label, i) {
+      if ((n - 1 - i) % every === 0) drawXLabel(svg, label, xs[i], H - 10, W, true);
+    });
+    var colors = series.map(function (s, si) {
+      return s.color || (si === 0 ? (cfg.color || accent()) : seriesPalette[(si - 1) % seriesPalette.length]);
+    });
+    series.forEach(function (s, si) {
+      var color = colors[si];
+      var pts = (s.values || []).map(function (v, i) { return [xs[i], padT + plotH - (finite(v) / max) * plotH]; });
+      var d = pts.map(function (p, i) { return (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1); }).join(" ");
+      svg.appendChild(svgEl("path", { d: d, fill: "none", stroke: color, "stroke-width": 2, "stroke-linejoin": "round" }));
+      pts.forEach(function (p, i) {
+        var c = svgEl("circle", { cx: p[0], cy: p[1], r: 3.5, fill: color });
+        var t = svgEl("title", {});
+        t.textContent = (s.label ? s.label + " · " : "") + labels[i] + ": " + f(s.values[i]);
+        c.appendChild(t);
+        svg.appendChild(c);
+      });
+    });
+    if (series.length > 1) {
+      legend(el, series.map(function (s, si) { return { label: s.label, color: colors[si] }; }));
+    }
+  }
+
+  // donut(el, {labels:[], values:[], colors?, format?, center?, centerLabel?, legend?})
+  // — donut with a short total in the centre (compact, in the declared unit)
+  // and, with legend: true, the labels and shares listed under it.
+  function donut(el, cfg) {
+    var W = 320, H = 280, cx = W / 2, cy = H / 2, R = 92, r = 58;
+    var svg = frame(el, W, H);
+    // At 100% of a wide container the donut outgrows the height pages give
+    // the box and spills over the next section: keep it at its own size.
+    svg.style.maxWidth = W + "px";
+    svg.style.margin = "0 auto";
+    var values = cfg.values.map(finite);
+    var labels = labelsFor(cfg, values.length);
+    var sum = values.reduce(function (a, b) { return a + b; }, 0);
+    var total = sum || 1;
+    var palette = cfg.colors || [accent()].concat(seriesPalette);
+    // The hover keeps the full value; the centre has room for a short one.
+    var full = coerceFormat(cfg.format);
+    var short = typeof cfg.format === "function" ? full : cfg.format === "brl" ? fmt.brlCompact : fmt.compact;
+    var a0 = -Math.PI / 2;
+    values.forEach(function (v, i) {
+      var a1 = a0 + (v / total) * Math.PI * 2;
+      var large = a1 - a0 > Math.PI ? 1 : 0;
+      var p = ["M", cx + R * Math.cos(a0), cy + R * Math.sin(a0),
+        "A", R, R, 0, large, 1, cx + R * Math.cos(a1), cy + R * Math.sin(a1),
+        "L", cx + r * Math.cos(a1), cy + r * Math.sin(a1),
+        "A", r, r, 0, large, 0, cx + r * Math.cos(a0), cy + r * Math.sin(a0), "Z"].join(" ");
+      var path = svgEl("path", { d: p, fill: palette[i % palette.length] });
+      var t = svgEl("title", {});
+      t.textContent = labels[i] + ": " + full(v) + " (" + fmt.pct(v / total) + ")";
+      path.appendChild(t);
+      svg.appendChild(path);
+      a0 = a1;
+    });
+    // A share chart has no total worth printing: without its own centre text
+    // the caption alone takes the middle.
+    var text = cfg.center != null ? String(cfg.center) : (cfg.format === "pct" ? "" : short(sum));
+    if (text) {
+      var size = text.length > 9 ? 14 : text.length > 7 ? 17 : 20;
+      var center = svgEl("text", { x: cx, y: cfg.centerLabel ? cy + 1 : cy + 6, "text-anchor": "middle", "font-size": size, "font-weight": 650, fill: "currentColor" });
+      center.textContent = text;
+      svg.appendChild(center);
+    }
+    if (cfg.centerLabel) {
+      var cap = svgEl("text", { x: cx, y: text ? cy + 19 : cy + 5, "text-anchor": "middle", "font-size": 11, fill: mutedColor() });
+      cap.textContent = cfg.centerLabel;
+      svg.appendChild(cap);
+    }
+    if (cfg.legend) {
+      legend(el, labels.map(function (label, i) {
+        return { label: label, color: palette[i % palette.length], value: fmt.pct(values[i] / total) };
+      }));
+    }
+  }
+
+  // ---- Page building blocks: what dashboards and small systems kept
+  // re-implementing — a searchable sortable table, a KPI row, tabs, toasts,
+  // dialogs, saved state and mock data. Every call is opt-in, so a page that
+  // brings its own versions keeps them.
+
+  function resolve(target) {
+    return typeof target === "string" ? document.querySelector(target) : target;
+  }
+
+  function node(tag, className, text) {
+    var el = document.createElement(tag);
+    if (className) el.className = className;
+    if (text != null) el.textContent = text;
+    return el;
+  }
+
+  function isNumberColumn(col) {
+    return col.align === "right" || col.format === "num" || col.format === "brl" || col.format === "pct";
+  }
+
+  function cellText(col, row) {
+    var value = row[col.key];
+    if (value == null) return "";
+    return col.format ? coerceFormat(col.format)(value) : String(value);
+  }
+
+  function compareValues(a, b) {
+    if (typeof a === "number" && typeof b === "number") return a - b;
+    return String(a == null ? "" : a).localeCompare(String(b == null ? "" : b), "pt-BR", { numeric: true });
+  }
+
+  // table(el, {columns, rows, search?, pageSize?, empty?, onRowClick?}) — a
+  // table.shell-table with sortable headers, an optional search box and
+  // pager. A column is {key, label, format?, align?, sortable? (true),
+  // render?(value, row) returning a Node or an HTML string — the page writes
+  // its cell templates as markup}. Plain values are always set as text.
+  // Returns {setRows, rows}.
+  function table(target, cfg) {
+    var root = resolve(target);
+    var cols = cfg.columns || [];
+    var pageSize = cfg.pageSize || 0;
+    var state = { rows: (cfg.rows || []).slice(), query: "", key: null, dir: 1, page: 0 };
+    root.innerHTML = "";
+    if (cfg.search) {
+      var search = node("input", "input skip-table-search");
+      search.type = "search";
+      search.placeholder = typeof cfg.search === "string" ? cfg.search : "Buscar…";
+      search.setAttribute("aria-label", search.placeholder);
+      search.addEventListener("input", function () {
+        state.query = search.value.trim().toLowerCase();
+        state.page = 0;
+        draw();
+      });
+      root.appendChild(search);
+    }
+    var tableEl = node("table", "shell-table");
+    var headRow = node("tr");
+    var heads = cols.map(function (col) {
+      var th = node("th", isNumberColumn(col) ? "num" : "", col.label == null ? col.key : col.label);
+      th.scope = "col";
+      if (col.sortable !== false) {
+        var toggle = function () {
+          state.dir = state.key === col.key ? -state.dir : 1;
+          state.key = col.key;
+          draw();
+        };
+        th.setAttribute("data-sort", col.key);
+        th.tabIndex = 0;
+        th.addEventListener("click", toggle);
+        th.addEventListener("keydown", function (e) {
+          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); }
+        });
+      }
+      headRow.appendChild(th);
+      return th;
+    });
+    var thead = node("thead");
+    var tbody = node("tbody");
+    var wrap = node("div", "skip-table-wrap");
+    var pager = node("div", "skip-pager");
+    thead.appendChild(headRow);
+    tableEl.appendChild(thead);
+    tableEl.appendChild(tbody);
+    wrap.appendChild(tableEl);
+    root.appendChild(wrap);
+    if (pageSize) root.appendChild(pager);
+
+    function visibleRows() {
+      var rows = state.rows;
+      if (state.query) {
+        rows = rows.filter(function (row) {
+          return cols.some(function (col) { return cellText(col, row).toLowerCase().indexOf(state.query) >= 0; });
+        });
+      }
+      if (state.key) {
+        var key = state.key, dir = state.dir;
+        rows = rows.slice().sort(function (a, b) { return dir * compareValues(a[key], b[key]); });
+      }
+      return rows;
+    }
+
+    function drawRow(row) {
+      var tr = node("tr");
+      cols.forEach(function (col) {
+        var td = node("td", isNumberColumn(col) ? "num" : "");
+        if (!col.render) {
+          td.textContent = cellText(col, row);
+        } else {
+          var content = col.render(row[col.key], row);
+          if (content instanceof Node) td.appendChild(content);
+          else td.innerHTML = content == null ? "" : String(content);
+        }
+        tr.appendChild(td);
+      });
+      // The row stays a row (no role) and takes focus, so a keyboard reaches
+      // the same action; keys pressed on a control inside a cell are its own.
+      if (cfg.onRowClick) {
+        tr.style.cursor = "pointer";
+        tr.tabIndex = 0;
+        tr.addEventListener("click", function () { cfg.onRowClick(row); });
+        tr.addEventListener("keydown", function (e) {
+          if (e.target !== tr || (e.key !== "Enter" && e.key !== " ")) return;
+          e.preventDefault();
+          cfg.onRowClick(row);
+        });
+      }
+      return tr;
+    }
+
+    function pagerButton(label, disabled, step) {
+      var button = node("button", "btn", label);
+      button.type = "button";
+      button.setAttribute("data-variant", "outline");
+      button.setAttribute("data-size", "sm");
+      button.disabled = disabled;
+      button.addEventListener("click", function () { state.page += step; draw(); });
+      return button;
+    }
+
+    function draw() {
+      var rows = visibleRows();
+      heads.forEach(function (th, i) {
+        if (cols[i].key === state.key) th.setAttribute("aria-sort", state.dir > 0 ? "ascending" : "descending");
+        else th.removeAttribute("aria-sort");
+      });
+      var pages = pageSize ? Math.max(1, Math.ceil(rows.length / pageSize)) : 1;
+      state.page = Math.min(state.page, pages - 1);
+      var shown = pageSize ? rows.slice(state.page * pageSize, (state.page + 1) * pageSize) : rows;
+      tbody.innerHTML = "";
+      if (!shown.length) {
+        var empty = node("td", "skip-table-empty", cfg.empty || "Nenhum registro encontrado.");
+        empty.colSpan = cols.length;
+        tbody.appendChild(node("tr")).appendChild(empty);
+      }
+      shown.forEach(function (row) { tbody.appendChild(drawRow(row)); });
+      if (!pageSize) return;
+      pager.innerHTML = "";
+      var from = rows.length ? state.page * pageSize + 1 : 0;
+      pager.appendChild(node("span", "", from + "–" + Math.min(rows.length, (state.page + 1) * pageSize) + " de " + rows.length));
+      var nav = node("div", "row gap-2");
+      nav.appendChild(pagerButton("Anterior", state.page === 0, -1));
+      nav.appendChild(pagerButton("Próxima", state.page >= pages - 1, 1));
+      pager.appendChild(nav);
+    }
+
+    draw();
+    return {
+      setRows: function (rows) { state.rows = rows.slice(); draw(); },
+      rows: visibleRows
+    };
+  }
+
+  // kpis(el, [{label, value, format?, delta?, hint?}]) — KPI cards in a
+  // responsive grid; delta is a fraction (0.12 renders as ▲ 12%).
+  function kpis(target, items) {
+    var root = resolve(target);
+    root.innerHTML = "";
+    root.classList.add("shell-grid");
+    items.forEach(function (item) {
+      var card = node("div", "panel kpi");
+      card.appendChild(node("span", "kpi-label", item.label));
+      // Large money values go compact ("R$ 27,5 mi"): the full amount does
+      // not fit a KPI card at four per row.
+      var kpiFormat = item.format === "brl" && Math.abs(item.value) >= 1e6 ? fmt.brlCompact : (item.format ? coerceFormat(item.format) : null);
+      card.appendChild(node("span", "kpi-value", kpiFormat ? kpiFormat(item.value) : String(item.value)));
+      if (typeof item.delta === "number") {
+        var up = item.delta >= 0;
+        card.appendChild(node("span", "kpi-delta " + (up ? "up" : "down"), (up ? "▲ " : "▼ ") + fmt.pct(Math.abs(item.delta))));
+      }
+      if (item.hint) card.appendChild(node("span", "kpi-label", item.hint));
+      root.appendChild(card);
+    });
+  }
+
+  // badge(text, variant?) — a .badge node for table cells and lists;
+  // variant is "secondary" | "outline" | "destructive" (default: primary).
+  function badge(text, variant) {
+    var el = node("span", "badge", text);
+    if (variant) el.setAttribute("data-variant", variant);
+    return el;
+  }
+
+  // tabs(el) — wires one .tabs block: [role=tab] buttons inside
+  // [role=tablist], each with aria-controls naming its [role=tabpanel].
+  function tabs(target) {
+    var root = resolve(target);
+    var buttons = Array.prototype.slice.call(root.querySelectorAll('[role="tab"]'));
+    function select(chosen) {
+      buttons.forEach(function (b) {
+        var on = b === chosen;
+        b.setAttribute("aria-selected", on ? "true" : "false");
+        b.tabIndex = on ? 0 : -1;
+        var panel = document.getElementById(b.getAttribute("aria-controls"));
+        if (panel) panel.hidden = !on;
+      });
+    }
+    buttons.forEach(function (b, i) {
+      b.addEventListener("click", function () { select(b); });
+      b.addEventListener("keydown", function (e) {
+        var step = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+        if (!step) return;
+        var next = buttons[(i + step + buttons.length) % buttons.length];
+        next.focus();
+        select(next);
+      });
+    });
+    select(buttons.filter(function (b) { return b.getAttribute("aria-selected") === "true"; })[0] || buttons[0]);
+  }
+
+  // toast(message, {type?: "success" | "error", title?, duration?}) — a
+  // .toast in a shared .toaster at the bottom of the page.
+  function toast(message, opts) {
+    opts = opts || {};
+    var toaster = document.querySelector(".toaster") || document.body.appendChild(node("div", "toaster"));
+    var item = node("div", "toast");
+    item.setAttribute("role", opts.type === "error" ? "alert" : "status");
+    item.setAttribute("aria-hidden", "true");
+    if (opts.type) item.setAttribute("data-type", opts.type);
+    var content = node("div", "toast-content");
+    var section = node("section");
+    if (opts.title) section.appendChild(node("h2", "", opts.title));
+    section.appendChild(node("p", "", message));
+    content.appendChild(section);
+    item.appendChild(content);
+    toaster.appendChild(item);
+    requestAnimationFrame(function () { item.setAttribute("aria-hidden", "false"); });
+    setTimeout(function () {
+      item.setAttribute("aria-hidden", "true");
+      setTimeout(function () { item.remove(); }, 400);
+    }, opts.duration || 3000);
+  }
+
+  // Dialogs are native <dialog class="dialog">: a [data-dialog-open="id"]
+  // anywhere opens one, a [data-dialog-close] inside closes it, and a click on
+  // its backdrop closes it too. Plain dialog.showModal()/close() still work.
+  document.addEventListener("click", function (e) {
+    var target = e.target;
+    if (!(target instanceof Element)) return;
+    var opener = target.closest("[data-dialog-open]");
+    if (opener) {
+      var dialog = document.getElementById(opener.getAttribute("data-dialog-open"));
+      if (dialog && dialog.showModal && !dialog.open) dialog.showModal();
+      return;
+    }
+    var closer = target.closest("[data-dialog-close]");
+    if (closer && closer.closest("dialog")) {
+      closer.closest("dialog").close();
+      return;
+    }
+    if (target.tagName === "DIALOG" && target.classList.contains("dialog") && target.open) target.close();
+  });
+
+  // store(key, fallback) — JSON state in localStorage that never throws (a
+  // private window or a full quota falls back to memory): {get, set, update}.
+  function store(key, fallback) {
+    var memory;
+    // Set while the last write did not reach localStorage: what is stored
+    // there is older than memory until a write goes through again.
+    var unsaved = false;
+    var initial = function () { return fallback === undefined ? undefined : JSON.parse(JSON.stringify(fallback)); };
+    function get() {
+      if (!unsaved) {
+        try {
+          var raw = localStorage.getItem(key);
+          if (raw != null) return JSON.parse(raw);
+        } catch (e) { /* storage unavailable: memory below */ }
+      }
+      return memory !== undefined ? memory : initial();
+    }
+    function set(value) {
+      memory = value;
+      try {
+        localStorage.setItem(key, JSON.stringify(value));
+        unsaved = false;
+      } catch (e) {
+        unsaved = true;
+      }
+      return value;
+    }
+    return { get: get, set: set, update: function (fn) { return set(fn(get())); } };
+  }
+
+  // mock — seeded random data, so a page asks for 90 days of numbers in one
+  // line instead of writing them out; the same seed gives the same data.
+  var FIRST = ["Ana", "Bruno", "Carla", "Diego", "Eduarda", "Felipe", "Gabriela", "Henrique", "Isabela", "João",
+    "Larissa", "Marcos", "Natália", "Otávio", "Paula", "Rafael", "Sofia", "Thiago", "Vanessa", "Lucas"];
+  var LAST = ["Silva", "Santos", "Oliveira", "Souza", "Pereira", "Costa", "Rodrigues", "Almeida", "Nascimento", "Lima",
+    "Araújo", "Fernandes", "Carvalho", "Gomes", "Martins", "Rocha", "Ribeiro", "Barbosa"];
+  var INITIALS = "ABCDEFGHIJLMNOPRSTV".split("");
+  var CITIES = ["São Paulo, SP", "Rio de Janeiro, RJ", "Belo Horizonte, MG", "Curitiba, PR", "Porto Alegre, RS",
+    "Salvador, BA", "Recife, PE", "Fortaleza, CE", "Brasília, DF", "Goiânia, GO", "Campinas, SP", "Florianópolis, SC",
+    "Manaus, AM", "Belém, PA", "Vitória, ES", "Natal, RN"];
+
+  function createMock(seed) {
+    var state = seed >>> 0;
+    var names = 0;
+    function random() {
+      state = (state + 0x6d2b79f5) >>> 0;
+      var t = state;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    }
+    function int(min, max) { return min + Math.floor(random() * (max - min + 1)); }
+    function pick(list) { return list[Math.floor(random() * list.length)]; }
+    var mock = {
+      seed: function (value) { state = value >>> 0; names = 0; return mock; },
+      random: random,
+      int: int,
+      float: function (min, max, decimals) {
+        var factor = Math.pow(10, decimals == null ? 2 : decimals);
+        return Math.round((min + random() * (max - min)) * factor) / factor;
+      },
+      pick: pick,
+      chance: function (p) { return random() < p; },
+      // There are 360 first/last pairs. A page that draws until the name is
+      // new (do { … } while (used.has(name))) froze the tab past them, so
+      // later draws widen the space: a second surname after 200 (6,480), a
+      // middle initial after 4,000.
+      name: function () {
+        names++;
+        var middle = names > 4000 ? pick(INITIALS) + ". " : "";
+        return pick(FIRST) + " " + middle + (names > 200 ? pick(LAST) + " " : "") + pick(LAST);
+      },
+      city: function () { return pick(CITIES); },
+      // series(n, {start, trend, noise, min, decimals}) — a walk: each value
+      // moves by trend (fraction per step) plus up to ±noise of itself.
+      series: function (n, opts) {
+        opts = opts || {};
+        var value = opts.start == null ? 100 : opts.start;
+        var factor = Math.pow(10, opts.decimals || 0);
+        var out = [];
+        for (var i = 0; i < n; i++) {
+          out.push(Math.max(opts.min == null ? 0 : opts.min, Math.round(value * factor) / factor));
+          value = value * (1 + (opts.trend || 0)) * (1 + (random() * 2 - 1) * (opts.noise == null ? 0.08 : opts.noise));
+        }
+        return out;
+      },
+      // dates(n, {end?, step?: "day" | "week" | "month"}) — ISO dates
+      // (YYYY-MM-DD), oldest first, ending at end (default: today).
+      dates: function (n, opts) {
+        opts = opts || {};
+        var end = opts.end ? new Date(opts.end) : new Date();
+        var out = [];
+        for (var i = n - 1; i >= 0; i--) {
+          var d = new Date(end.getTime());
+          if (opts.step === "month") d.setMonth(d.getMonth() - i);
+          else d.setDate(d.getDate() - i * (opts.step === "week" ? 7 : 1));
+          out.push(d.toISOString().slice(0, 10));
+        }
+        return out;
+      },
+      // rows(n, spec) — n objects; each spec value is a function(i), a list
+      // to pick from, or a constant.
+      rows: function (n, spec) {
+        var out = [];
+        for (var i = 0; i < n; i++) {
+          var row = {};
+          for (var key in spec) {
+            var value = spec[key];
+            row[key] = typeof value === "function" ? value(i) : Array.isArray(value) ? pick(value) : value;
+          }
+          out.push(row);
+        }
+        return out;
+      }
+    };
+    return mock;
+  }
+
+  window.skipShell = { fmt: fmt };
+  window.skipChart = { bar: bar, line: line, donut: donut };
+  window.skipUI = { table: table, kpis: kpis, badge: badge, tabs: tabs, toast: toast };
+  window.skipStore = store;
+  window.skipMock = createMock(20261022);
+})();
+
+</script>
+<style>
+:root {
+--accent: #0e7490;
+--accent-text: #22d3ee;
+--accent-contrast: #ffffff;
+font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+html[data-theme="light"] { --accent-text: #0e7490; }
+body { min-height: 100vh; }
+.app-header {
+position: sticky; top: 0; z-index: 30;
+backdrop-filter: blur(10px);
+background: color-mix(in srgb, var(--surface) 88%, transparent);
+border-bottom: 1px solid var(--border);
+}
+.brand-mark {
+width: 40px; height: 40px; border-radius: 12px;
+background: linear-gradient(135deg, #0e7490, #22d3ee);
+color: #fff; display: flex; align-items: center; justify-content: center;
+font-weight: 700; font-size: 0.8rem; box-shadow: 0 6px 16px rgba(14,116,144,.35);
+}
+.hero-card {
+border-radius: 16px;
+background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 22%, var(--surface)), var(--surface));
+border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border));
+padding: 1.25rem; box-shadow: 0 12px 30px rgba(0,0,0,.18);
+}
+.hero-value { font-size: 2.4rem; font-weight: 700; color: var(--accent-text); line-height: 1.1; }
+.card-soft { border-radius: 14px; box-shadow: 0 6px 18px rgba(0,0,0,.12); }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; }
+.form-grid .span-2 { grid-column: span 2; }
+.field-label { display: block; font-size: 0.82rem; font-weight: 600; margin-bottom: 6px; color: var(--text); }
+.field-helper { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
+.ctl {
+width: 100%; height: 44px; padding: 0 12px;
+border-radius: 10px; border: 1px solid var(--border);
+background: var(--bg); color: var(--text);
+font-size: 0.95rem; font-family: inherit; box-sizing: border-box;
+transition: border-color .15s, box-shadow .15s;
+}
+select.ctl {
+appearance: none; -webkit-appearance: none; padding-right: 36px;
+background-image: linear-gradient(45deg, transparent 50%, var(--text-muted) 50%), linear-gradient(135deg, var(--text-muted) 50%, transparent 50%);
+background-position: calc(100% - 18px) 19px, calc(100% - 13px) 19px;
+background-size: 5px 5px, 5px 5px; background-repeat: no-repeat;
+}
+.ctl:focus { outline: none; border-color: var(--accent-text); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-text) 25%, transparent); }
+textarea.ctl { height: auto; padding: 10px 12px; min-height: 76px; resize: vertical; }
+.ctl-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.profile-btns { display: flex; flex-wrap: wrap; gap: 8px; }
+.profile-btns button.active { background: var(--accent); color: var(--accent-contrast); border-color: var(--accent); }
+.section-num {
+width: 28px; height: 28px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center;
+background: color-mix(in srgb, var(--accent-text) 18%, transparent); color: var(--accent-text); font-weight: 700; font-size: .85rem;
+}
+.result-line { display: flex; justify-content: space-between; font-size: .9rem; padding: 6px 0; border-bottom: 1px dashed var(--border); }
+.bar-track { height: 10px; border-radius: 999px; background: var(--border); overflow: hidden; display: flex; }
+.bar-seg { height: 100%; transition: width .3s; }
+.legend-dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; margin-right: 6px; }
+.progress-track { height: 6px; border-radius: 999px; background: var(--border); overflow: hidden; }
+.progress-fill { height: 100%; background: var(--accent-text); width: 0; transition: width .3s; }
+.view { display: none; }
+.view.active { display: block; }
+.page-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(300px, 1fr); gap: 24px; align-items: start; }
+.sticky-side { position: sticky; top: 90px; }
+.doc-a4 {
+background: #fff; color: #111; width: 100%; max-width: 210mm; margin: 0 auto;
+padding: 12mm; box-sizing: border-box; border-radius: 6px; box-shadow: 0 10px 30px rgba(0,0,0,.25);
+font-size: 10px; line-height: 1.35;
+}
+html[data-theme="light"] .doc-a4 { box-shadow: 0 6px 18px rgba(0,0,0,.12); }
+.doc-head { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #0e7490; padding-bottom: 6px; margin-bottom: 8px; }
+.doc-head h2 { font-size: 15px; margin: 0; color: #0e7490; }
+.doc-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.doc-sec { margin-bottom: 8px; }
+.doc-sec h3 { font-size: 10.5px; text-transform: uppercase; letter-spacing: .04em; color: #0e7490; margin: 0 0 3px; }
+.doc-sec p, .doc-sec li { margin: 0 0 2px; }
+.doc-sec ul { margin: 0; padding-left: 14px; }
+.doc-table { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
+.doc-table th, .doc-table td { border-bottom: 1px solid #ddd; padding: 4px 5px; text-align: left; font-size: 10px; }
+.doc-table th { background: #f1f5f9; }
+.doc-table .num { text-align: right; }
+.doc-total { display: flex; justify-content: flex-end; gap: 12px; font-size: 12px; font-weight: 700; color: #0e7490; border-top: 2px solid #0e7490; padding-top: 4px; }
+.doc-ref-img { max-width: 300px; max-height: 300px; object-fit: contain; display: block; border: 1px solid #ddd; border-radius: 6px; }
+.doc-foot { margin-top: 8px; border-top: 1px solid #ddd; padding-top: 4px; font-size: 9px; color: #555; text-align: center; }
+.toggle-theme { cursor: pointer; }
+.checks label { display: flex; align-items: center; gap: 8px; font-size: .9rem; padding: 6px 0; }
+@media (max-width: 900px) {
+.page-grid { grid-template-columns: 1fr; }
+.sticky-side { position: static; }
+}
+@media (max-width: 640px) {
+.form-grid, .ctl-row { grid-template-columns: 1fr; }
+.form-grid .span-2 { grid-column: span 1; }
+.hero-value { font-size: 2rem; }
+}
+@media print {
+@page { size: A4; margin: 12mm; }
+body * { visibility: hidden !important; }
+#print-area, #print-area * { visibility: visible !important; }
+#print-area { position: absolute; left: 0; top: 0; width: 100%; }
+.doc-a4 { box-shadow: none; border-radius: 0; padding: 0; max-width: none; }
+.no-print { display: none !important; }
+}
+</style>
+</head>
+<body>
+<header class="app-header">
+<div class="shell-container row between p-3 no-print">
+<div class="row gap-3">
+<div class="brand-mark">C3D</div>
+<div>
+<div class="row gap-2"><strong>Casa116-3D</strong><span class="badge" data-variant="secondary">v2.5 Pro</span></div>
+<div class="text-xs muted">Precificação inteligente • v2.5 Pro</div>
+</div>
+</div>
+<div class="row gap-2">
+<button class="btn toggle-theme" data-variant="outline" data-size="sm" id="themeToggle" type="button">🌙 Escuro</button>
+</div>
+</div>
+</header>
+
+<main class="shell-container shell-section">
+<!-- ===================== CALCULADORA ===================== -->
+<section id="viewCalc" class="view active">
+<div class="shell-hero mb-4">
+<span class="eyebrow">Orçamento em tempo real</span>
+<h1 class="text-2xl font-bold mt-2 mb-0">Calculadora de precificação 3D</h1>
+<p class="muted text-sm mt-1">Preencha os seis blocos e veja o preço de venda sugerido atualizar a cada tecla.</p>
+</div>
+
+<div class="row between mb-4 gap-2">
+<div class="row gap-2">
+<span class="badge" data-variant="secondary" id="badgeFilled">0 de 6 itens preenchidos</span>
+<span class="badge" data-variant="outline">Dados salvos localmente</span>
+</div>
+<div class="progress-track" style="width:180px;"><div class="progress-fill" id="progressFill"></div></div>
+</div>
+
+<div class="page-grid">
+<div class="stack gap-4">
+<div class="card panel card-soft p-4">
+<label class="field-label" for="pieceId">Identificação da peça ou pedido (opcional)</label>
+<input class="ctl" id="pieceId" type="text" value="Suporte de celular articulado" placeholder="Ex.: Suporte de celular — Pedido #142">
+<div class="field-helper">Esse nome aparece no orçamento gerado.</div>
+</div>
+
+<!-- Item 1 -->
+<div class="card panel card-soft p-4">
+<div class="row gap-2 mb-1"><span class="section-num">1</span><strong>Material (Filamento/Resina)</strong></div>
+<p class="muted text-xs mb-3">Custo do material consumido pela peça.</p>
+<div class="form-grid">
+<div>
+<label class="field-label" for="matTipo">Tipo de material</label>
+<select class="ctl" id="matTipo">
+<option value="PLA" selected>PLA</option>
+<option value="PETG">PETG</option>
+<option value="ABS">ABS</option>
+<option value="TPU">TPU</option>
+<option value="Resina">Resina</option>
+</select>
+<div class="field-helper">Preenche o preço sugerido do kg.</div>
+</div>
+<div>
+<label class="field-label" for="matPreco">Preço do rolo/kg (R$)</label>
+<input class="ctl" id="matPreco" type="number" step="0.5" min="0" value="89">
+<div class="field-helper">Valor pago pelo quilo.</div>
+</div>
+<div>
+<label class="field-label" for="matPeso">Peso da peça (g)</label>
+<input class="ctl" id="matPeso" type="number" step="1" min="0" value="48">
+<div class="field-helper">Use o peso do fatiador.</div>
+</div>
+<div>
+<label class="field-label">Subtotal do material</label>
+<div class="ctl row" style="justify-content:flex-start;font-weight:600;" id="subMat">R$ 0,00</div>
+</div>
+</div>
+</div>
+
+<!-- Item 2 -->
+<div class="card panel card-soft p-4">
+<div class="row gap-2 mb-1"><span class="section-num">2</span><strong>Consumo de Energia</strong></div>
+<p class="muted text-xs mb-3">Potência da máquina multiplicada pelo tempo de impressão.</p>
+<div class="form-grid">
+<div>
+<label class="field-label" for="maqPot">Máquina / potência</label>
+<select class="ctl" id="maqPot">
+<option value="150">150W</option>
+<option value="200" selected>200W</option>
+<option value="250">250W</option>
+<option value="300">300W</option>
+<option value="400">400W</option>
+</select>
+<div class="field-helper">Consumo médio da impressora.</div>
+</div>
+<div>
+<label class="field-label" for="tarifa">Tarifa de energia (R$/kWh)</label>
+<input class="ctl" id="tarifa" type="number" step="0.01" min="0" value="0.95">
+<div class="field-helper">Conta de luz atual.</div>
+</div>
+<div>
+<label class="field-label" for="horas">Horas de impressão</label>
+<input class="ctl" id="horas" type="number" step="1" min="0" value="6">
+<div class="field-helper">Tempo total de máquina.</div>
+</div>
+<div>
+<label class="field-label" for="minutos">Minutos adicionais</label>
+<input class="ctl" id="minutos" type="number" step="1" min="0" max="59" value="30">
+<div class="field-helper">Complemento de minutos.</div>
+</div>
+<div class="span-2">
+<label class="field-label">Subtotal de energia</label>
+<div class="ctl row" style="justify-content:flex-start;font-weight:600;" id="subEne">R$ 0,00</div>
+</div>
+</div>
+</div>
+
+<!-- Item 3 -->
+<div class="card panel card-soft p-4">
+<div class="row gap-2 mb-1"><span class="section-num">3</span><strong>Mão de Obra &amp; Operação</strong></div>
+<p class="muted text-xs mb-3">Tempo de preparo, remoção e pós-processamento.</p>
+<div class="form-grid">
+<div>
+<label class="field-label" for="prepMin">Tempo de preparo/pós-processo (min)</label>
+<input class="ctl" id="prepMin" type="number" step="1" min="0" value="15">
+<div class="field-helper">Fatiamento, remoção de suportes e lixa.</div>
+</div>
+<div>
+<label class="field-label" for="valorHora">Valor da hora de trabalho (R$/h)</label>
+<input class="ctl" id="valorHora" type="number" step="1" min="0" value="25">
+<div class="field-helper">Quanto vale o seu tempo.</div>
+</div>
+</div>
+</div>
+
+<!-- Item 4 -->
+<div class="card panel card-soft p-4">
+<div class="row gap-2 mb-1"><span class="section-num">4</span><strong>Depreciação e Manutenção</strong></div>
+<p class="muted text-xs mb-3">Desgaste da impressora distribuído por hora de uso.</p>
+<div class="form-grid">
+<div>
+<label class="field-label" for="valorImp">Valor de compra da impressora (R$)</label>
+<input class="ctl" id="valorImp" type="number" step="10" min="0" value="2400">
+<div class="field-helper">Preço pago na aquisição.</div>
+</div>
+<div>
+<label class="field-label" for="vidaUtil">Vida útil estimada (horas)</label>
+<input class="ctl" id="vidaUtil" type="number" step="10" min="1" value="3000">
+<div class="field-helper">Horas esperadas até o fim da máquina.</div>
+</div>
+</div>
+</div>
+
+<!-- Item 5 -->
+<div class="card panel card-soft p-4">
+<div class="row gap-2 mb-1"><span class="section-num">5</span><strong>Insumos Fixos &amp; Taxa de Falhas</strong></div>
+<p class="muted text-xs mb-3">Embalagem, consumíveis e perdas por impressão falha.</p>
+<div class="form-grid">
+<div>
+<label class="field-label" for="embalagem">Embalagem (R$)</label>
+<input class="ctl" id="embalagem" type="number" step="0.5" min="0" value="3.5">
+<div class="field-helper">Caixa, plástico bolha e etiqueta.</div>
+</div>
+<div>
+<label class="field-label" for="outros">Outros insumos (R$)</label>
+<input class="ctl" id="outros" type="number" step="0.5" min="0" value="1.2">
+<div class="field-helper">Cola, lixas, álcool isopropílico.</div>
+</div>
+<div class="span-2">
+<label class="field-label" for="falha">Taxa de falha/risco (%)</label>
+<input class="ctl" id="falha" type="number" step="1" min="0" value="8">
+<div class="field-helper">Percentual de impressões que não aproveitam.</div>
+</div>
+</div>
+</div>
+
+<!-- Item 6 -->
+<div class="card panel card-soft p-4">
+<div class="row gap-2 mb-1"><span class="section-num">6</span><strong>Margem de Lucro &amp; Quantidade</strong></div>
+<p class="muted text-xs mb-3">Escolha um perfil de margem ou digite um valor personalizado.</p>
+<div class="profile-btns mb-3" id="profileBtns">
+<button type="button" class="btn" data-variant="outline" data-size="sm" data-margin="35">35% Volume</button>
+<button type="button" class="btn active" data-variant="outline" data-size="sm" data-margin="50">50% Padrão</button>
+<button type="button" class="btn" data-variant="outline" data-size="sm" data-margin="80">80% Maker</button>
+<button type="button" class="btn" data-variant="outline" data-size="sm" data-margin="120">120% Exclusivo</button>
+</div>
+<div class="form-grid">
+<div>
+<label class="field-label" for="margem">Margem de lucro (%)</label>
+<input class="ctl" id="margem" type="number" step="1" min="0" value="50">
+<div class="field-helper">Lucro sobre o custo unitário.</div>
+</div>
+<div>
+<label class="field-label" for="qtd">Quantidade no lote (un.)</label>
+<input class="ctl" id="qtd" type="number" step="1" min="1" value="10">
+<div class="field-helper">Peças produzidas no mesmo lote.</div>
+</div>
+</div>
+</div>
+
+<div class="row between gap-2">
+<button type="button" class="btn" data-variant="ghost" id="btnResetCalc">Restaurar padrões</button>
+<button type="button" class="btn" id="btnGerarOrc">➡️ Gerar Orçamento</button>
+</div>
+</div>
+
+<!-- Resultados -->
+<aside class="sticky-side stack gap-3">
+<div class="hero-card">
+<div class="text-xs muted font-semibold" style="letter-spacing:.08em;text-transform:uppercase;">Preço de venda sugerido (unitário)</div>
+<div class="hero-value mt-1" id="resPreco">R$ 0,00</div>
+<div class="text-xs muted mt-1">Já inclui taxa de falha e a margem escolhida.</div>
+</div>
+
+<div class="card panel card-soft p-4">
+<div class="result-line"><span class="muted">Custo unitário total</span><strong id="resCusto">R$ 0,00</strong></div>
+<div class="result-line"><span class="muted">Lucro líquido unitário</span><strong id="resLucro">R$ 0,00</strong></div>
+<div class="result-line"><span class="muted">Custo por grama</span><strong id="resGrama">R$ 0,00</strong></div>
+<div class="result-line" style="border-bottom:none;"><span class="muted">Custo por hora de máquina</span><strong id="resHora">R$ 0,00</strong></div>
+</div>
+
+<div class="card panel card-soft p-4">
+<strong class="text-sm">Composição do custo</strong>
+<p class="muted text-xs mb-2">Participação de cada item no custo unitário.</p>
+<div class="bar-track" id="compBar"></div>
+<div class="stack gap-1 mt-3 text-xs" id="compLegend"></div>
+</div>
+
+<div class="card panel card-soft p-4">
+<strong class="text-sm">Simulação do lote</strong>
+<p class="muted text-xs mb-2">Totais considerando a quantidade informada.</p>
+<div class="result-line"><span class="muted">Custo total do lote</span><strong id="loteCusto">R$ 0,00</strong></div>
+<div class="result-line"><span class="muted">Preço total de venda</span><strong id="lotePreco">R$ 0,00</strong></div>
+<div class="result-line" style="border-bottom:none;"><span class="muted">Lucro acumulado</span><strong id="loteLucro" class="text-success">R$ 0,00</strong></div>
+</div>
+</aside>
+</div>
+</section>
+
+<!-- ===================== ORÇAMENTO ===================== -->
+<section id="viewOrc" class="view">
+<div class="shell-hero mb-4">
+<span class="eyebrow">Proposta comercial</span>
+<h1 class="text-2xl font-bold mt-2 mb-0">Gerador de Orçamentos — Casa116-3D v2.5 Pro</h1>
+<p class="muted text-sm mt-1">Contato: (27) 98152-2034 · @casa116_3d</p>
+</div>
+
+<div class="row between mb-4 gap-2 no-print">
+<div class="row gap-2">
+<button type="button" class="btn" data-variant="ghost" id="btnVoltar">← Voltar para a Calculadora</button>
+</div>
+<div class="row gap-2">
+<button type="button" class="btn" data-variant="outline" id="btnLimpar">Limpar</button>
+<button type="button" class="btn" id="btnImprimir">🖨️ Imprimir / PDF</button>
+</div>
+</div>
+
+<div class="page-grid">
+<div class="stack gap-4 no-print">
+<!-- Seção 1 -->
+<div class="card panel card-soft p-4">
+<div class="row gap-2 mb-1"><span class="section-num">1</span><strong>Cabeçalho e identificação</strong></div>
+<p class="muted text-xs mb-3">Dados de quem emite e de quem recebe o orçamento.</p>
+<div class="form-grid">
+<div><label class="field-label" for="oServico">Nome do serviço</label><input class="ctl" id="oServico" value="Impressão 3D sob encomenda"><div class="field-helper">Título do orçamento.</div></div>
+<div><label class="field-label" for="oTel">Telefone/WhatsApp</label><input class="ctl" id="oTel" value="(27) 98152-2034"><div class="field-helper">Canal de atendimento.</div></div>
+<div><label class="field-label" for="oEmail">E-mail</label><input class="ctl" id="oEmail" type="email" value="contato@casa1163d.com.br"><div class="field-helper">Para envio de arquivos.</div></div>
+<div><label class="field-label" for="oInsta">Instagram</label><input class="ctl" id="oInsta" value="@casa116_3d"><div class="field-helper">Portfólio de peças.</div></div>
+<div><label class="field-label" for="oNum">Número do orçamento</label><div class="ctl-row"><input class="ctl" id="oNum" readonly><button type="button" class="btn" data-variant="outline" id="btnNovoNum">Gerar novo</button></div><div class="field-helper">Formato ORC-AAAA-NNNN.</div></div>
+<div><label class="field-label" for="oEmissao">Data de emissão</label><input class="ctl" id="oEmissao" type="date"><div class="field-helper">Data de hoje por padrão.</div></div>
+<div class="span-2"><label class="field-label" for="oValidade">Validade da proposta</label><select class="ctl" id="oValidade"><option value="7">7 dias</option><option value="15" selected>15 dias</option><option value="30">30 dias</option></select><div class="field-helper">Prazo para aceite do valor.</div></div>
+</div>
+</div>
+
+<!-- Seção 2 -->
+<div class="card panel card-soft p-4">
+<div class="row gap-2 mb-1"><span class="section-num">2</span><strong>Descrição do trabalho</strong></div>
+<p class="muted text-xs mb-3">O que será impresso e como deve ficar.</p>
+<div class="form-grid">
+<div class="span-2"><label class="field-label" for="oPeca">Nome/descrição da peça</label><input class="ctl" id="oPeca" value="Suporte de celular articulado"><div class="field-helper">Vem da calculadora.</div></div>
+<div><label class="field-label" for="oQtd">Quantidade</label><input class="ctl" id="oQtd" type="number" min="1" value="10"><div class="field-helper">Peças do lote.</div></div>
+<div><label class="field-label" for="oMat">Material</label><input class="ctl" id="oMat" value="PLA"><div class="field-helper">Filamento ou resina.</div></div>
+<div><label class="field-label" for="oAcab">Acabamento</label><select class="ctl" id="oAcab"><option>Lixado e limpo</option><option selected>Lixado + remoção de suportes</option><option>Pintura manual</option></select><div class="field-helper">Nível de pós-processo.</div></div>
+<div><label class="field-label" for="oCor">Cor</label><select class="ctl" id="oCor"><option selected>Preto</option><option>Branco</option><option>Cinza</option><option value="custom">Personalizada</option></select><div class="field-helper">Escolha a cor do filamento.</div></div>
+<div class="span-2" id="corCustomWrap" style="display:none;"><label class="field-label" for="oCorCustom">Cor personalizada</label><input class="ctl" id="oCorCustom" placeholder="Ex.: Azul-petróleo"><div class="field-helper">Descreva a cor desejada.</div></div>
+<div><label class="field-label" for="oTam">Tamanho aproximado</label><input class="ctl" id="oTam" value="8 × 6 × 10 cm"><div class="field-helper">Dimensões externas.</div></div>
+<div><label class="field-label" for="oCam">Altura de camada/qualidade</label><select class="ctl" id="oCam"><option value="0.28">0,28 mm (rápida)</option><option value="0.20" selected>0,20 mm (padrão)</option><option value="0.12">0,12 mm (alta)</option></select><div class="field-helper">Afeta acabamento e tempo.</div></div>
+<div class="span-2"><label class="field-label" for="oImg">URL da imagem de referência</label><input class="ctl" id="oImg" value="https://img.usecurling.com/p/600/600?q=phone%20stand%203d%20print&color=black"><div class="field-helper">Imagem exibida no orçamento (máx. 300px).</div></div>
+</div>
+</div>
+
+<!-- Seção 3 -->
+<div class="card panel card-soft p-4">
+<div class="row gap-2 mb-1"><span class="section-num">3</span><strong>Valores</strong></div>
+<p class="muted text-xs mb-3">Valores preenchidos pela calculadora e ajustes do pedido.</p>
+<div class="form-grid">
+<div><label class="field-label" for="oUnit">Valor unitário por peça (R$)</label><input class="ctl" id="oUnit" type="number" step="0.01" min="0" value="0"><div class="field-helper">Vem da calculadora.</div></div>
+<div><label class="field-label" for="oAcabVal">Acabamento e revisão (R$)</label><input class="ctl" id="oAcabVal" type="number" step="0.5" min="0" value="0"><div class="field-helper">Valor por peça.</div></div>
+<div><label class="field-label" for="oEntrega">Logística/entrega (R$)</label><input class="ctl" id="oEntrega" type="number" step="0.5" min="0" value="18"><div class="field-helper">Valor do pedido.</div></div>
+<div><label class="field-label" for="oPrazo">Prazo de entrega</label><select class="ctl" id="oPrazo"><option>3 dias úteis</option><option selected>5 dias úteis</option><option>7 dias úteis</option><option value="custom">Personalizado</option></select><div class="field-helper">Contado após aprovação.</div></div>
+<div class="span-2" id="prazoCustomWrap" style="display:none;"><label class="field-label" for="oPrazoCustom">Prazo personalizado</label><input class="ctl" id="oPrazoCustom" placeholder="Ex.: 10 dias úteis"><div class="field-helper">Descreva o prazo.</div></div>
+<div class="span-2"><label class="field-label">Valor total do pedido</label><div class="ctl row" style="justify-content:flex-start;font-weight:700;color:var(--accent-text);" id="oTotalView">R$ 0,00</div><div class="field-helper">(unitário + acabamento + entrega) × quantidade.</div></div>
+</div>
+</div>
+
+<!-- Seção 4 -->
+<div class="card panel card-soft p-4">
+<div class="row gap-2 mb-1"><span class="section-num">4</span><strong>Escopo</strong></div>
+<p class="muted text-xs mb-3">Etapas incluídas no valor e o que fica de fora.</p>
+<div class="checks mb-3">
+<label><input type="checkbox" id="escModel" checked> Modelagem 3D</label>
+<label><input type="checkbox" id="escPos" checked> Pós-processamento básico</label>
+<label><input type="checkbox" id="escEmb" checked> Embalagem protegida</label>
+<label><input type="checkbox" id="escRev" checked> Revisão de qualidade</label>
+</div>
+<label class="field-label" for="oNaoInc">O que NÃO está incluído</label>
+<textarea class="ctl" id="oNaoInc">Pintura artística, montagem com eletrônica e instalação no local.</textarea>
+</div>
+
+<!-- Seção 5 -->
+<div class="card panel card-soft p-4">
+<div class="row gap-2 mb-1"><span class="section-num">5</span><strong>Condições comerciais</strong></div>
+<p class="muted text-xs mb-3">Como o pagamento e o frete acontecem.</p>
+<div class="form-grid">
+<div><label class="field-label" for="oPgto">Forma de pagamento</label><select class="ctl" id="oPgto"><option selected>Pix — 50% no aceite e 50% na entrega</option><option>Cartão em até 3x</option><option value="custom">Personalizada</option></select><div class="field-helper">Condição padrão.</div></div>
+<div><label class="field-label" for="oFrete">Frete</label><select class="ctl" id="oFrete"><option selected>Por conta do cliente</option><option>Incluso no valor</option></select><div class="field-helper">Responsabilidade pelo envio.</div></div>
+<div class="span-2" id="pgtoCustomWrap" style="display:none;"><label class="field-label" for="oPgtoCustom">Pagamento personalizado</label><input class="ctl" id="oPgtoCustom" placeholder="Descreva a condição"><div class="field-helper">Texto livre.</div></div>
+<div class="span-2"><label class="field-label" for="oObs">Observações comerciais</label><textarea class="ctl" id="oObs">Valores válidos para a quantidade informada. Pedidos acima de 50 peças têm condição especial.</textarea></div>
+</div>
+</div>
+
+<!-- Seção 6 -->
+<div class="card panel card-soft p-4">
+<div class="row gap-2 mb-1"><span class="section-num">6</span><strong>Políticas e termos</strong></div>
+<p class="muted text-xs mb-3">Textos padrão, editáveis conforme sua necessidade.</p>
+<div class="stack gap-3">
+<div><label class="field-label" for="oPolAlt">Política de alterações</label><textarea class="ctl" id="oPolAlt">Alterações no modelo após aprovação geram cobrança adicional proporcional ao retrabalho.</textarea></div>
+<div><label class="field-label" for="oPolRef">Política de refação</label><textarea class="ctl" id="oPolRef">Peças com defeito de impressão atribuível à Casa116-3D são refeitas sem custo adicional.</textarea></div>
+<div><label class="field-label" for="oPolArq">Direitos sobre o arquivo 3D</label><textarea class="ctl" id="oPolArq">O arquivo 3D fornecido pelo cliente permanece de sua propriedade. Modelos criados pela Casa116-3D pertencem ao cliente após o pagamento.</textarea></div>
+<div><label class="field-label" for="oTermos">Termos finais</label><textarea class="ctl" id="oTermos">Este orçamento não constitui contrato até a confirmação do pagamento inicial. Prazos começam após aprovação e envio do sinal.</textarea></div>
+</div>
+</div>
+
+<div class="row gap-2">
+<button type="button" class="btn grow" id="btnToast">Salvar rascunho</button>
+<button type="button" class="btn" data-variant="outline" id="btnCopiar">Copiar resumo</button>
+</div>
+</div>
+
+<!-- Pré-visualização A4 -->
+<aside class="sticky-side">
+<div class="text-xs muted mb-2 no-print">Pré-visualização A4 (compacta — até 2 folhas)</div>
+<div id="print-area">
+<div class="doc-a4" id="docPreview">
+<div class="doc-head">
+<div>
+<h2>Casa116-3D</h2>
+<div>Impressão 3D sob encomenda</div>
+<div>(27) 98152-2034 · @casa116_3d</div>
+</div>
+<div style="text-align:right;">
+<div><strong>Orçamento:</strong> <span id="dNum"></span></div>
+<div><strong>Emissão:</strong> <span id="dEmis"></span></div>
+<div><strong>Validade:</strong> <span id="dVal"></span></div>
+</div>
+</div>
+
+<div class="doc-cols doc-sec">
+<div>
+<h3>Dados do serviço</h3>
+<p><strong id="dServico"></strong></p>
+<p>Tel./WhatsApp: <span id="dTel"></span></p>
+<p>E-mail: <span id="dEmail"></span></p>
+<p>Instagram: <span id="dInsta"></span></p>
+</div>
+<div>
+<h3>Descrição do trabalho</h3>
+<p><strong id="dPeca"></strong></p>
+<p>Material: <span id="dMat"></span> · Cor: <span id="dCor"></span></p>
+<p>Tamanho: <span id="dTam"></span> · Camada: <span id="dCam"></span> mm</p>
+<p>Acabamento: <span id="dAcab"></span></p>
+</div>
+</div>
+
+<div class="doc-sec">
+<h3>Itens do orçamento</h3>
+<table class="doc-table">
+<thead><tr><th>Descrição</th><th>Material/Cor</th><th class="num">Qtd.</th><th class="num">Unit.</th><th class="num">Total</th></tr></thead>
+<tbody>
+<tr><td id="tDesc"></td><td id="tMatCor"></td><td class="num" id="tQtd"></td><td class="num" id="tUnit"></td><td class="num" id="tTot"></td></tr>
+<tr><td>Acabamento e revisão</td><td>—</td><td class="num" id="tQtd2"></td><td class="num" id="tAcab"></td><td class="num" id="tAcabTot"></td></tr>
+<tr><td>Logística/entrega</td><td>—</td><td class="num">1</td><td class="num" id="tEnt"></td><td class="num" id="tEntTot"></td></tr>
+</tbody>
+</table>
+<div class="doc-total"><span>Valor total do pedido:</span><span id="dTotal"></span></div>
+<p style="margin-top:4px;">Prazo de entrega: <strong id="dPrazo"></strong></p>
+</div>
+
+<div class="doc-sec">
+<h3>Imagem de referência</h3>
+<img class="doc-ref-img" id="dImg" alt="Imagem de referência da peça">
+</div>
+
+<div class="doc-cols doc-sec">
+<div>
+<h3>Escopo incluído</h3>
+<ul id="dEscopo"></ul>
+</div>
+<div>
+<h3>Não incluído</h3>
+<p id="dNaoInc"></p>
+</div>
+</div>
+
+<div class="doc-cols doc-sec">
+<div>
+<h3>Condições comerciais</h3>
+<p>Pagamento: <span id="dPgto"></span></p>
+<p>Frete: <span id="dFrete"></span></p>
+<p>Observações: <span id="dObs"></span></p>
+</div>
+<div>
+<h3>Políticas e termos</h3>
+<p><strong>Alterações:</strong> <span id="dPolAlt"></span></p>
+<p><strong>Refação:</strong> <span id="dPolRef"></span></p>
+<p><strong>Arquivo 3D:</strong> <span id="dPolArq"></span></p>
+<p><strong>Termos:</strong> <span id="dTermos"></span></p>
+</div>
+</div>
+
+<div class="doc-foot">Casa116-3D · (27) 98152-2034 · @casa116_3d · Orçamento sujeito à validade indicada.</div>
+</div>
+</div>
+</aside>
+</div>
+</section>
+
+<div class="shell-footer mt-6 text-center text-xs muted no-print">Casa116-3D • Calculadora + Gerador de Orçamentos • Dados salvos no navegador</div>
+</main>
+
+<script>
+(function () {
+const store = window.skipStore('casa116-3d-state', {});
+const BR = n => window.skipShell.fmt.brl(n);
+const $ = id => document.getElementById(id);
+const num = id => Math.max(0, parseFloat($(id).value) || 0);
+
+const MAT_PRECO = { PLA: 89, PETG: 99, ABS: 79, TPU: 150, Resina: 180 };
+
+const CALC_FIELDS = ['pieceId','matTipo','matPreco','matPeso','maqPot','tarifa','horas','minutos','prepMin','valorHora','valorImp','vidaUtil','embalagem','outros','falha','margem','qtd'];
+
+function readCalc() {
+const o = {};
+CALC_FIELDS.forEach(id => o[id] = $(id).value);
+return o;
+}
+
+function compute() {
+const peso = num('matPeso'), kg = num('matPreco');
+const material = kg * peso / 1000;
+const horasTot = num('horas') + num('minutos') / 60;
+const energia = num('maqPot') * horasTot / 1000 * num('tarifa');
+const mao = num('prepMin') / 60 * num('valorHora');
+const vida = Math.max(1, num('vidaUtil'));
+const deprec = num('valorImp') / vida * horasTot;
+const embal = num('embalagem'), outros = num('outros');
+const base = material + energia + mao + deprec + embal + outros;
+const custoUnit = base * (1 + num('falha') / 100);
+const margem = num('margem');
+const precoUnit = custoUnit * (1 + margem / 100);
+const lucroUnit = precoUnit - custoUnit;
+const qtd = Math.max(1, num('qtd'));
+const pesoG = Math.max(1, peso);
+
+$('subMat').textContent = BR(material);
+$('subEne').textContent = BR(energia);
+$('resPreco').textContent = BR(precoUnit);
+$('resCusto').textContent = BR(custoUnit);
+$('resLucro').textContent = BR(lucroUnit);
+$('resGrama').textContent = BR(custoUnit / pesoG);
+$('resHora').textContent = BR(horasTot > 0 ? custoUnit / horasTot : 0);
+$('loteCusto').textContent = BR(custoUnit * qtd);
+$('lotePreco').textContent = BR(precoUnit * qtd);
+$('loteLucro').textContent = BR(lucroUnit * qtd);
+
+const comps = [
+{ label: 'Material', v: material, c: '#22d3ee' },
+{ label: 'Energia', v: energia, c: '#0e7490' },
+{ label: 'Mão de obra', v: mao, c: '#a78bfa' },
+{ label: 'Depreciação', v: deprec, c: '#f59e0b' },
+{ label: 'Embalagem', v: embal, c: '#34d399' },
+{ label: 'Outros insumos', v: outros, c: '#f472b6' }
+];
+const total = comps.reduce((s, x) => s + x.v, 0) || 1;
+$('compBar').innerHTML = comps.map(x => `<div class="bar-seg" style="width:${(x.v/total*100).toFixed(1)}%;background:${x.c}"></div>`).join('');
+$('compLegend').innerHTML = comps.map(x => `<div class="row between"><span><span class="legend-dot" style="background:${x.c}"></span>${x.label}</span><span class="muted">${(x.v/total*100).toFixed(1)}%</span></div>`).join('');
+
+const filled = ['matPreco','matPeso','tarifa','horas','prepMin','valorHora','valorImp','vidaUtil','embalagem','margem'].filter(id => num(id) > 0).length;
+$('badgeFilled').textContent = filled + ' de 6 itens preenchidos';
+$('progressFill').style.width = Math.round(filled / 10 * 100) + '%';
+
+return { material, energia, mao, deprec, embal, outros, custoUnit, precoUnit, lucroUnit, qtd, horasTot, pesoG, margem };
+}
+
+function setMargin(v) {
+$('margem').value = v;
+document.querySelectorAll('#profileBtns button').forEach(b => b.classList.toggle('active', Number(b.dataset.margin) === Number(v)));
+}
+
+function genNumber() {
+const y = new Date().getFullYear();
+const n = String(Math.floor(1000 + Math.random() * 9000));
+return `ORC-${y}-${n}`;
+}
+
+function todayISO() { return new Date().toISOString().slice(0, 10); }
+function fmtDate(iso) { if (!iso) return ''; const [y,m,d] = iso.split('-'); return `${d}/${m}/${y}`; }
+
+function buildDoc() {
+const r = compute();
+const unit = num('oUnit');
+const acab = num('oAcabVal');
+const ent = num('oEntrega');
+const qtd = Math.max(1, num('oQtd'));
+const total = (unit + acab + ent) * qtd;
+const corTxt = $('oCor').value === 'custom' ? ($('oCorCustom').value || 'Personalizada') : $('oCor').value;
+const prazo = $('oPrazo').value === 'custom' ? ($('oPrazoCustom').value || '—') : $('oPrazo').value;
+const pgto = $('oPgto').value === 'custom' ? ($('oPgtoCustom').value || '—') : $('oPgto').value;
+const validade = $('oValidade').value;
+const emissao = $('oEmissao').value || todayISO();
+const escopo = [];
+if ($('escModel').checked) escopo.push('Modelagem 3D');
+if ($('escPos').checked) escopo.push('Pós-processamento básico');
+if ($('escEmb').checked) escopo.push('Embalagem protegida');
+if ($('escRev').checked) escopo.push('Revisão de qualidade');
+
+$('dNum').textContent = $('oNum').value;
+$('dEmis').textContent = fmtDate(emissao);
+const dv = new Date(emissao + 'T00:00:00'); dv.setDate(dv.getDate() + Number(validade));
+$('dVal').textContent = `${validade} dias (até ${dv.toLocaleDateString('pt-BR')})`;
+$('dServico').textContent = $('oServico').value;
+$('dTel').textContent = $('oTel').value;
+$('dEmail').textContent = $('oEmail').value;
+$('dInsta').textContent = $('oInsta').value;
+$('dPeca').textContent = $('oPeca').value;
+$('dMat').textContent = $('oMat').value;
+$('dCor').textContent = corTxt;
+$('dTam').textContent = $('oTam').value;
+$('dCam').textContent = $('oCam').value.replace('.', ',');
+$('dAcab').textContent = $('oAcab').value;
+$('tDesc').textContent = $('oPeca').value;
+$('tMatCor').textContent = `${$('oMat').value} / ${corTxt}`;
+$('tQtd').textContent = qtd;
+$('tUnit').textContent = BR(unit);
+$('tTot').textContent = BR(unit * qtd);
+$('tQtd2').textContent = qtd;
+$('tAcab').textContent = BR(acab);
+$('tAcabTot').textContent = BR(acab * qtd);
+$('tEnt').textContent = BR(ent);
+$('tEntTot').textContent = BR(ent);
+$('dTotal').textContent = BR(total);
+$('dPrazo').textContent = prazo;
+$('dImg').src = $('oImg').value;
+$('dEscopo').innerHTML = escopo.map(e => `<li>${e}</li>`).join('');
+$('dNaoInc').textContent = $('oNaoInc').value;
+$('dPgto').textContent = pgto;
+$('dFrete').textContent = $('oFrete').value;
+$('dObs').textContent = $('oObs').value;
+$('dPolAlt').textContent = $('oPolAlt').value;
+$('dPolRef').textContent = $('oPolRef').value;
+$('dPolArq').textContent = $('oPolArq').value;
+$('dTermos').textContent = $('oTermos').value;
+$('oTotalView').textContent = BR(total);
+}
+
+function saveAll() {
+const s = {};
+CALC_FIELDS.forEach(id => s[id] = $(id).value);
+['oServico','oTel','oEmail','oInsta','oNum','oEmissao','oValidade','oPeca','oQtd','oMat','oAcab','oCor','oCorCustom','oTam','oCam','oImg','oUnit','oAcabVal','oEntrega','oPrazo','oPrazoCustom','oPgto','oPgtoCustom','oFrete','oObs','oPolAlt','oPolRef','oPolArq','oTermos','oNaoInc'].forEach(id => s[id] = $(id).value);
+['escModel','escPos','escEmb','escRev'].forEach(id => s[id] = $(id).checked);
+store.set(s);
+}
+
+function loadAll() {
+const s = store.get() || {};
+Object.keys(s).forEach(id => {
+const el = $(id);
+if (!el) return;
+if (el.type === 'checkbox') el.checked = !!s[id];
+else el.value = s[id];
+});
+}
+
+function toggleCustomFields() {
+$('corCustomWrap').style.display = $('oCor').value === 'custom' ? '' : 'none';
+$('prazoCustomWrap').style.display = $('oPrazo').value === 'custom' ? '' : 'none';
+$('pgtoCustomWrap').style.display = $('oPgto').value === 'custom' ? '' : 'none';
+}
+
+function showView(v) {
+$('viewCalc').classList.toggle('active', v === 'calc');
+$('viewOrc').classList.toggle('active', v === 'orc');
+window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function setTheme(t) {
+document.documentElement.setAttribute('data-theme', t);
+$('themeToggle').textContent = t === 'dark' ? '🌙 Escuro' : '☀️ Claro';
+localStorage.setItem('casa116-theme', t);
+}
+
+function gerarOrcamento() {
+const r = compute();
+const emissao = todayISO();
+$('oPeca').value = $('pieceId').value || 'Peça sob encomenda';
+$('oQtd').value = Math.max(1, num('qtd'));
+$('oMat').value = $('matTipo').value;
+$('oUnit').value = r.precoUnit.toFixed(2);
+$('oNum').value = genNumber();
+$('oEmissao').value = emissao;
+toggleCustomFields();
+buildDoc();
+saveAll();
+showView('orc');
+window.skipUI.toast('Orçamento gerado com os valores da calculadora', { type: 'success' });
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+const savedTheme = localStorage.getItem('casa116-theme') || 'dark';
+setTheme(savedTheme);
+$('themeToggle').addEventListener('click', () => setTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'));
+
+loadAll();
+if (!$('oNum').value) $('oNum').value = genNumber();
+if (!$('oEmissao').value) $('oEmissao').value = todayISO();
+
+CALC_FIELDS.forEach(id => $(id).addEventListener('input', () => { compute(); saveAll(); }));
+$('matTipo').addEventListener('change', () => {
+const p = MAT_PRECO[$('matTipo').value];
+$('matPreco').value = p;
+compute(); saveAll();
+});
+document.querySelectorAll('#profileBtns button').forEach(b => b.addEventListener('click', () => {
+setMargin(b.dataset.margin); compute(); saveAll();
+window.skipUI.toast(`Perfil de margem aplicado: ${b.dataset.margin}%`);
+}));
+$('btnResetCalc').addEventListener('click', () => {
+$('matTipo').value = 'PLA'; $('matPreco').value = 89; $('matPeso').value = 48;
+$('maqPot').value = 200; $('tarifa').value = 0.95; $('horas').value = 6; $('minutos').value = 30;
+$('prepMin').value = 15; $('valorHora').value = 25; $('valorImp').value = 2400; $('vidaUtil').value = 3000;
+$('embalagem').value = 3.5; $('outros').value = 1.2; $('falha').value = 8; $('qtd').value = 10;
+setMargin(50); compute(); saveAll();
+window.skipUI.toast('Valores padrão restaurados', { type: 'success' });
+});
+$('btnGerarOrc').addEventListener('click', gerarOrcamento);
+$('btnVoltar').addEventListener('click', () => { showView('calc'); window.skipUI.toast('Valores preservados na calculadora'); });
+$('btnNovoNum') && $('btnNovoNum').addEventListener('click', () => { $('oNum').value = genNumber(); buildDoc(); saveAll(); window.skipUI.toast('Novo número de orçamento gerado'); });
+$('btnLimpar').addEventListener('click', () => {
+['oServico','oTel','oEmail','oInsta','oPeca','oTam','oCorCustom','oPrazoCustom','oPgtoCustom'].forEach(id => $(id).value = '');
+$('oUnit').value = 0; $('oAcabVal').value = 0; $('oEntrega').value = 0;
+buildDoc(); saveAll();
+window.skipUI.toast('Campos do orçamento limpos', { type: 'success' });
+});
+$('btnImprimir').addEventListener('click', () => window.print());
+$('btnCopiar').addEventListener('click', () => {
+const txt = `Orçamento ${$('oNum').value} — ${$('oPeca').value}: ${$('oQtd').value} un. — Total ${$('dTotal').textContent}`;
+navigator.clipboard.writeText(txt).then(() => window.skipUI.toast('Resumo copiado', { type: 'success' }), () => window.skipUI.toast('Não foi possível copiar', { type: 'error' }));
+});
+$('btnToast').addEventListener('click', () => { saveAll(); window.skipUI.toast('Rascunho salvo no navegador', { type: 'success' }); });
+
+['oServico','oTel','oEmail','oInsta','oNum','oEmissao','oValidade','oPeca','oQtd','oMat','oAcab','oCor','oCorCustom','oTam','oCam','oImg','oUnit','oAcabVal','oEntrega','oPrazo','oPrazoCustom','oPgto','oPgtoCustom','oFrete','oObs','oPolAlt','oPolRef','oPolArq','oTermos','oNaoInc','escModel','escPos','escEmb','escRev'].forEach(id => {
+$(id).addEventListener('input', () => { toggleCustomFields(); buildDoc(); saveAll(); });
+$(id).addEventListener('change', () => { toggleCustomFields(); buildDoc(); saveAll(); });
+});
+
+compute();
+toggleCustomFields();
+buildDoc();
+});
+})();
+</script>
+</main>
+</body>
+</html>
