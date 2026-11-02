@@ -1043,12 +1043,15 @@ backdrop-filter: blur(10px);
 background: color-mix(in srgb, var(--surface) 88%, transparent);
 border-bottom: 1px solid var(--border);
 }
-.brand-mark {
-width: 40px; height: 40px; border-radius: 12px;
-background: linear-gradient(135deg, #0e7490, #22d3ee);
-color: #fff; display: flex; align-items: center; justify-content: center;
-font-weight: 700; font-size: 0.8rem; box-shadow: 0 6px 16px rgba(14,116,144,.35);
+.brand-mark { height: 52px; width: auto; display: block; }
+.doc-logo-sm { height: 36px; width: auto; display: block; }
+.doc-watermark {
+position: absolute; left: 50%; top: 50%; width: 60%; height: auto;
+transform: translate(-50%, -50%); opacity: 0.08; pointer-events: none; z-index: 0;
+-webkit-print-color-adjust: exact; print-color-adjust: exact;
 }
+.doc-a4 { position: relative; }
+.doc-a4 > *:not(.doc-watermark) { position: relative; z-index: 1; }
 .hero-card {
 border-radius: 16px;
 background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 22%, var(--surface)), var(--surface));
@@ -1138,7 +1141,7 @@ body * { visibility: hidden !important; }
 <header class="app-header">
 <div class="shell-container row between p-3 no-print">
 <div class="row gap-3">
-<div class="brand-mark">C3D</div>
+<img class="brand-mark" src="https://drive.google.com/thumbnail?id=1wYpsW2C3HD4CQx-gstWuBNCximlDW_Xo&sz=w1024" onerror="this.onerror=null;this.src='https://drive.google.com/uc?export=download&id=1wYpsW2C3HD4CQx-gstWuBNCximlDW_Xo'" alt="Logo Casa116-3D">
 <div>
 <div class="row gap-2"><strong>Casa116-3D</strong><span class="badge" data-variant="secondary">v2.5 Pro</span></div>
 <div class="text-xs muted">Precificação inteligente • v2.5 Pro</div>
@@ -1483,10 +1486,11 @@ body * { visibility: hidden !important; }
 <div class="text-xs muted mb-2 no-print">Pré-visualização A4 (compacta — até 2 folhas)</div>
 <div id="print-area">
 <div class="doc-a4" id="docPreview">
+<img class="doc-watermark" src="https://drive.google.com/thumbnail?id=1wYpsW2C3HD4CQx-gstWuBNCximlDW_Xo&sz=w1024" onerror="this.onerror=null;this.src='https://drive.google.com/uc?export=download&id=1wYpsW2C3HD4CQx-gstWuBNCximlDW_Xo'" alt="">
 <div class="doc-head">
 <div>
-<h2>Casa116-3D</h2>
-<div>Impressão 3D sob encomenda</div>
+<div class="row gap-2"><img class="doc-logo-sm" src="https://drive.google.com/thumbnail?id=1wYpsW2C3HD4CQx-gstWuBNCximlDW_Xo&sz=w1024" onerror="this.onerror=null;this.src='https://drive.google.com/uc?export=download&id=1wYpsW2C3HD4CQx-gstWuBNCximlDW_Xo'" alt="Logo Casa116-3D"><h2>Casa116-3D</h2></div>
+<div>IMPRESSÃO 3D - PROTOTIPAGEM - DESIGN</div>
 <div>(27) 98152-2034 · @casa116_3d</div>
 </div>
 <div style="text-align:right;">
